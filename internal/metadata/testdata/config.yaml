@@ -1,0 +1,9 @@
+default:
+all_set:
+  metrics:
+    system.gui.window.time:
+      enabled: true
+none_set:
+  metrics:
+    system.gui.window.time:
+      enabled: false
