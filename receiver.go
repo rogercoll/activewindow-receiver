@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/jezek/xgb"
 	"github.com/rogercoll/activewindowreceiver/internal/metadata"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
@@ -22,7 +23,8 @@ const entityType = "host"
 type activewindowReceiver struct {
 	cfg *Config
 
-	cancel context.CancelFunc
+	connection *xgb.Conn
+	cancel     context.CancelFunc
 
 	mb *metadata.MetricsBuilder
 
@@ -35,10 +37,18 @@ func createMetricsReceiver(
 	config component.Config,
 	consumer consumer.Metrics,
 ) (receiver.Metrics, error) {
+	X, err := xgb.NewConn()
+	if err != nil {
+		return nil, err
+	}
+
 	activeConfig := config.(*Config)
 	recv := activewindowReceiver{
-		cfg: activeConfig,
+		cfg:        activeConfig,
+		connection: X,
+		mb:         metadata.NewMetricsBuilder(metadata.DefaultMetricsBuilderConfig(), params),
 	}
+
 	scrp, err := scraperhelper.NewScraperWithoutType(recv.scrape, scraperhelper.WithStart(recv.start), scraperhelper.WithShutdown(recv.shutdown))
 	if err != nil {
 		return nil, err
@@ -53,18 +63,18 @@ func (ar *activewindowReceiver) start(ctx context.Context, _ component.Host) err
 		for {
 			select {
 			case <-ticker.C:
-				windowId, windowName := activeWindow()
+				windowId, windowName := activeWindow(ar.connection)
 				windowsId, ok := ar.windows.Load(windowId)
 				if !ok {
 					var windowNames sync.Map
-					windowNames.Store(windowName, ar.cfg.Precision*time.Second)
+					windowNames.Store(windowName, ar.cfg.Precision.Seconds())
 					ar.windows.Store(windowId, &windowNames)
 				} else {
 					value, ok := windowsId.(*sync.Map).Load(windowName)
 					if ok {
-						windowsId.(*sync.Map).Store(windowName, value.(time.Duration)+ar.cfg.Precision*time.Second)
+						windowsId.(*sync.Map).Store(windowName, value.(float64)+ar.cfg.Precision.Seconds())
 					} else {
-						windowsId.(*sync.Map).Store(windowName, ar.cfg.Precision*time.Second)
+						windowsId.(*sync.Map).Store(windowName, ar.cfg.Precision.Seconds())
 					}
 				}
 			case <-ctx.Done():
@@ -82,10 +92,10 @@ func (ar *activewindowReceiver) scrape(ctx context.Context) (pmetric.Metrics, er
 	ar.windows.Range(func(windowId, value any) bool {
 		windows := value.(*sync.Map)
 		windows.Range(func(windowName, value any) bool {
-			time := value.(time.Duration)
+			time := value.(float64)
 			windowIdStr := windowId.(string)
 			windowNameStr := windowName.(string)
-			ar.mb.RecordSystemGuiWindowTimeDataPoint(now, time.Seconds(), windowIdStr, windowNameStr)
+			ar.mb.RecordSystemGuiWindowTimeDataPoint(now, time, windowIdStr, windowNameStr)
 			return true
 		})
 		return true
