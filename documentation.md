@@ -25,4 +25,5 @@ Total seconds each window name has spent on each window id.
 | Name | Description | Values |
 | ---- | ----------- | ------ |
 | system.gui.window.id | Logical CPU number starting at 0. | Any Str |
-| system.gui.window.name | Breakdown of CPU usage by type. | Any Str |
+| system.gui.window.name | Window name or title. | Any Str |
+| system.gui.window.application.name | Application name under the running window. | Any Str |

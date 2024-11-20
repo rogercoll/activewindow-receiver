@@ -7,12 +7,16 @@ import (
 	"time"
 
 	"github.com/rogercoll/activewindowreceiver/internal/metadata"
+	"github.com/rogercoll/activewindowreceiver/internal/provider"
+	"github.com/rogercoll/activewindowreceiver/internal/provider/x11provider"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/scraperhelper"
 )
 
-// This file implements Factory for CPU scraper.
+var providerFactories = map[string]provider.ActiveWindowProviderFactory{
+	x11provider.TypeStr: &x11provider.Factory{},
+}
 
 // CreateDefaultConfig creates the default configuration for the Scraper.
 func createDefaultReceiverConfig() *Config {
@@ -20,6 +24,14 @@ func createDefaultReceiverConfig() *Config {
 		ControllerConfig: scraperhelper.NewDefaultControllerConfig(),
 		Precision:        1 * time.Second,
 	}
+}
+
+func getProviderFactory(key string) (provider.ActiveWindowProviderFactory, bool) {
+	if factory, ok := providerFactories[key]; ok {
+		return factory, true
+	}
+
+	return nil, false
 }
 
 func NewFactory() receiver.Factory {

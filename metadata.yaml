@@ -15,7 +15,11 @@ attributes:
     type: string
 
   system.gui.window.name:
-    description: Breakdown of CPU usage by type.
+    description: Window name or title.
+    type: string
+
+  system.gui.window.application.name:
+    description: Application name under the running window.
     type: string
 
 metrics:
@@ -27,4 +31,4 @@ metrics:
       value_type: double
       aggregation_temporality: cumulative
       monotonic: true
-    attributes: [system.gui.window.id, system.gui.window.name]
+    attributes: [system.gui.window.id, system.gui.window.name, system.gui.window.application.name]

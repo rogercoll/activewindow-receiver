@@ -61,7 +61,7 @@ func TestMetricsBuilder(t *testing.T) {
 
 			defaultMetricsCount++
 			allMetricsCount++
-			mb.RecordSystemGuiWindowTimeDataPoint(ts, 1, "system.gui.window.id-val", "system.gui.window.name-val")
+			mb.RecordSystemGuiWindowTimeDataPoint(ts, 1, "system.gui.window.id-val", "system.gui.window.name-val", "system.gui.window.application.name-val")
 
 			res := pcommon.NewResource()
 			metrics := mb.Emit(WithResource(res))
@@ -105,6 +105,9 @@ func TestMetricsBuilder(t *testing.T) {
 					attrVal, ok = dp.Attributes().Get("system.gui.window.name")
 					assert.True(t, ok)
 					assert.EqualValues(t, "system.gui.window.name-val", attrVal.Str())
+					attrVal, ok = dp.Attributes().Get("system.gui.window.application.name")
+					assert.True(t, ok)
+					assert.EqualValues(t, "system.gui.window.application.name-val", attrVal.Str())
 				}
 			}
 		})

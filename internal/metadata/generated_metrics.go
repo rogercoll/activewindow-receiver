@@ -28,7 +28,7 @@ func (m *metricSystemGuiWindowTime) init() {
 	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
 }
 
-func (m *metricSystemGuiWindowTime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, systemGuiWindowIDAttributeValue string, systemGuiWindowNameAttributeValue string) {
+func (m *metricSystemGuiWindowTime) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val float64, systemGuiWindowIDAttributeValue string, systemGuiWindowNameAttributeValue string, systemGuiWindowApplicationNameAttributeValue string) {
 	if !m.config.Enabled {
 		return
 	}
@@ -38,6 +38,7 @@ func (m *metricSystemGuiWindowTime) recordDataPoint(start pcommon.Timestamp, ts 
 	dp.SetDoubleValue(val)
 	dp.Attributes().PutStr("system.gui.window.id", systemGuiWindowIDAttributeValue)
 	dp.Attributes().PutStr("system.gui.window.name", systemGuiWindowNameAttributeValue)
+	dp.Attributes().PutStr("system.gui.window.application.name", systemGuiWindowApplicationNameAttributeValue)
 }
 
 // updateCapacity saves max length of data point slices that will be used for the slice capacity.
@@ -189,8 +190,8 @@ func (mb *MetricsBuilder) Emit(options ...ResourceMetricsOption) pmetric.Metrics
 }
 
 // RecordSystemGuiWindowTimeDataPoint adds a data point to system.gui.window.time metric.
-func (mb *MetricsBuilder) RecordSystemGuiWindowTimeDataPoint(ts pcommon.Timestamp, val float64, systemGuiWindowIDAttributeValue string, systemGuiWindowNameAttributeValue string) {
-	mb.metricSystemGuiWindowTime.recordDataPoint(mb.startTime, ts, val, systemGuiWindowIDAttributeValue, systemGuiWindowNameAttributeValue)
+func (mb *MetricsBuilder) RecordSystemGuiWindowTimeDataPoint(ts pcommon.Timestamp, val float64, systemGuiWindowIDAttributeValue string, systemGuiWindowNameAttributeValue string, systemGuiWindowApplicationNameAttributeValue string) {
+	mb.metricSystemGuiWindowTime.recordDataPoint(mb.startTime, ts, val, systemGuiWindowIDAttributeValue, systemGuiWindowNameAttributeValue, systemGuiWindowApplicationNameAttributeValue)
 }
 
 // Reset resets metrics builder to its initial state. It should be used when external metrics source is restarted,
