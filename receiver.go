@@ -6,6 +6,7 @@ package activewindowreceiver // import "github.com/open-telemetry/opentelemetry-
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -110,8 +111,14 @@ func (ar *activewindowReceiver) start(ctx context.Context, _ component.Host) err
 	return nil
 }
 
+var nonAlphanumericRegex = regexp.MustCompile(`[^a-zA-Z0-9 ]+`)
+
 func parseWindowName(windowName string) []string {
-	return strings.Split(windowName, " — ")
+	windows := nonAlphanumericRegex.Split(strings.TrimSpace(windowName), -1)
+	for i := range windows {
+		windows[i] = strings.TrimSpace(windows[i])
+	}
+	return windows
 }
 
 func (ar *activewindowReceiver) scrape(ctx context.Context) (pmetric.Metrics, error) {
